@@ -1,10 +1,12 @@
 import logging
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "8693514553:AAEKJnHc5Mxpx4nvN2ez8DPW66CCoWpkwSg"
+TOKEN = os.environ.get("BOT_TOKEN", "8693514553:AAEKJnHc5Mxpx4nvN2ez8DPW66CCoWpkwSg")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
 
 # Admin ID — сюда будут приходить заявки (замени на свой Telegram ID)
 ADMIN_ID = 1196450378
@@ -363,8 +365,17 @@ def main():
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown))
 
-    print("LE AURA Bot zapushen!")
-    app.run_polling()
+    if WEBHOOK_URL:
+        PORT = int(os.environ.get("PORT", 8443))
+        print(f"Starting webhook on port {PORT}")
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            webhook_url=WEBHOOK_URL,
+        )
+    else:
+        print("LE AURA Bot zapushen (polling)!")
+        app.run_polling()
 
 if __name__ == "__main__":
     main()
