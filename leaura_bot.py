@@ -9,7 +9,7 @@ TOKEN = os.environ.get("BOT_TOKEN", "8693514553:AAEKJnHc5Mxpx4nvN2ez8DPW66CCoWpk
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
 ADMIN_ID = 1196450378
 
-NAME, PHONE, BUSINESS, SERVICE, BUDGET, CONFIRM = range(6)
+NAME, PHONE, BUSINESS, SERVICE, CONFIRM = range(5)
 
 # ══════════════════════════════════════════
 # ТЕКСТЫ
@@ -22,6 +22,7 @@ WELCOME_TEXT = """✦ *LE AURA — AI Automation Agency*
 🎙️ Голосовой ИИ-Ресепшонист
 💬 ИИ-боты Telegram и WhatsApp
 🤵 AI-Консьерж для гостей
+🌐 Создание сайтов
 
 _50+ проектов · запуск за 7 дней · результат или возврат_"""
 
@@ -47,18 +48,23 @@ Premium AI-агентство нового поколения.
 SERVICES_TEXT = """⚡ *Наши услуги*
 
 🎙️ *Голосовой ИИ-Ресепшонист*
-Принимает звонки и бронирования 24/7 — без выходных и праздников. Русский и английский. Среднее время ответа: менее 3 секунд.
-_от $500 настройка + $250/мес_
+Принимает звонки и бронирования 24/7 — без выходных. Русский и английский. Ответ менее чем за 3 секунды.
 
 ━━━━━━━━━━━━━━━━━
 💬 *ИИ-боты Telegram и WhatsApp*
 Мгновенные ответы на вопросы гостей. Онлайн-бронирование прямо в чате. Автоматические напоминания о заезде.
-_от $500 настройка + $250/мес_
 
 ━━━━━━━━━━━━━━━━━
 🤵 *AI-Консьерж для гостей*
 После заселения гость пишет: «Где поесть рядом?», «Как вызвать такси?» — ИИ знает всё об отеле и городе.
-_входит в тариф Pro_"""
+
+━━━━━━━━━━━━━━━━━
+🌐 *Создание сайтов*
+Современные лендинги и корпоративные сайты с онлайн-бронированием, интеграцией CRM и AI-чатом.
+
+━━━━━━━━━━━━━━━━━
+🔗 *CRM-интеграции*
+Подключаем к AmoCRM, Bitrix24. Ни один лид не потеряется."""
 
 PRICING_TEXT = """💰 *Тарифы для гостиниц*
 
@@ -123,7 +129,7 @@ _Или оставь заявку — мы сами свяжемся!_"""
 FAQ_TEXT = """❓ *Частые вопросы*
 
 *Сколько времени занимает запуск?*
-Базовый пакет — 5 рабочих дней. Полный Pro-пакет — до 14 дней.
+Базовый пакет — 5 рабочих дней. Pro-пакет — до 14 дней.
 
 *Что входит в $250/мес?*
 Поддержка 24/7, мониторинг, обновления, новые функции. Никаких скрытых платежей.
@@ -143,7 +149,7 @@ FAQ_TEXT = """❓ *Частые вопросы*
 
 def main_menu():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎙️ Услуги", callback_data="services"),
+        [InlineKeyboardButton("⚡ Услуги", callback_data="services"),
          InlineKeyboardButton("💰 Тарифы", callback_data="pricing")],
         [InlineKeyboardButton("🏆 Кейсы", callback_data="portfolio"),
          InlineKeyboardButton("👑 О нас", callback_data="about")],
@@ -163,17 +169,10 @@ def service_menu():
         [InlineKeyboardButton("🎙️ Голосовой ИИ-Ресепшонист", callback_data="svc_voice")],
         [InlineKeyboardButton("💬 ИИ-боты Telegram и WhatsApp", callback_data="svc_tg")],
         [InlineKeyboardButton("🤵 AI-Консьерж для гостей", callback_data="svc_concierge")],
-        [InlineKeyboardButton("🏨 Пакет Basic ($500+$250/мес)", callback_data="svc_basic")],
-        [InlineKeyboardButton("👑 Пакет Pro ($800+$250/мес)", callback_data="svc_pro")],
+        [InlineKeyboardButton("🌐 Создание сайта", callback_data="svc_website")],
+        [InlineKeyboardButton("🏨 Пакет Basic для гостиниц", callback_data="svc_basic")],
+        [InlineKeyboardButton("👑 Пакет Pro для гостиниц", callback_data="svc_pro")],
         [InlineKeyboardButton("🔧 Другое / Индивидуально", callback_data="svc_custom")],
-    ])
-
-def budget_menu():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🏨 Basic — $500+$250/мес", callback_data="b_basic")],
-        [InlineKeyboardButton("👑 Pro — $800+$250/мес", callback_data="b_pro")],
-        [InlineKeyboardButton("💼 Индивидуальный проект", callback_data="b_custom")],
-        [InlineKeyboardButton("💬 Обсудить с менеджером", callback_data="b_discuss")],
     ])
 
 def confirm_menu():
@@ -183,7 +182,7 @@ def confirm_menu():
     ])
 
 # ══════════════════════════════════════════
-# ХЭНДЛЕРЫ
+# ХЭНДЛЕРЫ — НАВИГАЦИЯ
 # ══════════════════════════════════════════
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -216,6 +215,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "faq":
         await query.edit_message_text(FAQ_TEXT, parse_mode='Markdown', reply_markup=back_menu())
 
+# ══════════════════════════════════════════
+# ХЭНДЛЕРЫ — ФОРМА ЗАЯВКИ
+# ══════════════════════════════════════════
 
 async def start_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -223,93 +225,57 @@ async def start_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     await query.edit_message_text(
         "🚀 *Оставить заявку*\n\n"
-        "Шаг 1 из 4 — Как вас зовут?\n\n"
+        "Шаг 1 из 3 — Как вас зовут?\n\n"
         "_Введите ваше имя:_",
         parse_mode='Markdown'
     )
     return NAME
 
-
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['name'] = update.message.text
     await update.message.reply_text(
         f"✦ Приятно познакомиться, *{update.message.text}*!\n\n"
-        "Шаг 2 из 4 — Ваш Telegram или номер телефона:",
+        "Шаг 2 из 3 — Ваш Telegram или номер телефона:",
         parse_mode='Markdown'
     )
     return PHONE
 
-
 async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['phone'] = update.message.text
     await update.message.reply_text(
-        "🏢 Шаг 3 из 4 — Расскажите о вашем бизнесе:\n\n"
-        "_Например: отель 30 номеров в Ташкенте, фитнес-клуб, агентство недвижимости..._",
-        parse_mode='Markdown'
-    )
-    return BUSINESS
-
-
-async def get_business(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['business'] = update.message.text
-    await update.message.reply_text(
-        "⚡ Шаг 4 из 4 — Какое решение вас интересует?",
+        "🏢 Шаг 3 из 3 — Какое решение вас интересует?",
         parse_mode='Markdown',
         reply_markup=service_menu()
     )
     return SERVICE
 
-
 async def select_service(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     services = {
-        "svc_voice": "🎙️ Голосовой ИИ-Ресепшонист",
-        "svc_tg": "💬 ИИ-боты Telegram и WhatsApp",
+        "svc_voice":     "🎙️ Голосовой ИИ-Ресепшонист",
+        "svc_tg":        "💬 ИИ-боты Telegram и WhatsApp",
         "svc_concierge": "🤵 AI-Консьерж для гостей",
-        "svc_basic": "🏨 Пакет Basic",
-        "svc_pro": "👑 Пакет Pro",
-        "svc_custom": "🔧 Индивидуальное решение",
+        "svc_website":   "🌐 Создание сайта",
+        "svc_basic":     "🏨 Пакет Basic для гостиниц",
+        "svc_pro":       "👑 Пакет Pro для гостиниц",
+        "svc_custom":    "🔧 Индивидуальное решение",
     }
     context.user_data['service'] = services.get(query.data, "Не указано")
-    await query.edit_message_text(
-        f"✅ Выбрано: *{context.user_data['service']}*\n\n"
-        "Какой бюджет вы рассматриваете?",
-        parse_mode='Markdown',
-        reply_markup=budget_menu()
-    )
-    return BUDGET
-
-
-async def select_budget(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    budgets = {
-        "b_basic": "Basic — $500 настройка + $250/мес",
-        "b_pro": "Pro — $800 настройка + $250/мес",
-        "b_custom": "Индивидуальный проект",
-        "b_discuss": "Хочу обсудить с менеджером",
-    }
-    context.user_data['budget'] = budgets.get(query.data, "Не указано")
 
     name = context.user_data.get('name', '—')
     phone = context.user_data.get('phone', '—')
     service = context.user_data.get('service', '—')
-    budget = context.user_data.get('budget', '—')
-    business = context.user_data.get('business', '—')
 
     summary = (
         "📋 *Проверьте заявку:*\n\n"
         f"👤 Имя: *{name}*\n"
         f"📱 Контакт: *{phone}*\n"
-        f"🏢 Бизнес: *{business}*\n"
-        f"⚡ Решение: *{service}*\n"
-        f"💰 Бюджет: *{budget}*\n\n"
+        f"⚡ Решение: *{service}*\n\n"
         "_Всё верно?_"
     )
     await query.edit_message_text(summary, parse_mode='Markdown', reply_markup=confirm_menu())
     return CONFIRM
-
 
 async def confirm_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -318,8 +284,6 @@ async def confirm_application(update: Update, context: ContextTypes.DEFAULT_TYPE
     name = context.user_data.get('name', '—')
     phone = context.user_data.get('phone', '—')
     service = context.user_data.get('service', '—')
-    budget = context.user_data.get('budget', '—')
-    business = context.user_data.get('business', '—')
     user = query.from_user
 
     await query.edit_message_text(
@@ -336,10 +300,8 @@ async def confirm_application(update: Update, context: ContextTypes.DEFAULT_TYPE
             "🔥 *НОВАЯ ЗАЯВКА — LE AURA*\n\n"
             f"👤 Имя: {name}\n"
             f"📱 Контакт: {phone}\n"
-            f"🏢 Бизнес: {business}\n"
-            f"⚡ Решение: {service}\n"
-            f"💰 Бюджет: {budget}\n\n"
-            f"👤 TG: @{user.username or 'нет'} | ID: {user.id}"
+            f"⚡ Решение: {service}\n\n"
+            f"TG: @{user.username or 'нет'} | ID: {user.id}"
         )
         try:
             await context.bot.send_message(ADMIN_ID, admin_msg, parse_mode='Markdown')
@@ -348,7 +310,6 @@ async def confirm_application(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     context.user_data.clear()
     return ConversationHandler.END
-
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -366,12 +327,10 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(start_application, pattern="^apply$")],
         states={
-            NAME:     [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
-            PHONE:    [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
-            BUSINESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_business)],
-            SERVICE:  [CallbackQueryHandler(select_service, pattern="^svc_")],
-            BUDGET:   [CallbackQueryHandler(select_budget, pattern="^b_")],
-            CONFIRM:  [CallbackQueryHandler(confirm_application, pattern="^confirm_yes$")],
+            NAME:    [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
+            PHONE:   [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
+            SERVICE: [CallbackQueryHandler(select_service, pattern="^svc_")],
+            CONFIRM: [CallbackQueryHandler(confirm_application, pattern="^confirm_yes$")],
         },
         fallbacks=[CommandHandler("start", start)],
         per_message=False,
