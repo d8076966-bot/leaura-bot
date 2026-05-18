@@ -296,15 +296,16 @@ async def confirm_application(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
     if ADMIN_ID:
+        username = user.username or 'нет'
         admin_msg = (
-            "🔥 *НОВАЯ ЗАЯВКА — LE AURA*\n\n"
+            f"🔥 <b>НОВАЯ ЗАЯВКА — LE AURA</b>\n\n"
             f"👤 Имя: {name}\n"
             f"📱 Контакт: {phone}\n"
             f"⚡ Решение: {service}\n\n"
-            f"TG: @{user.username or 'нет'} | ID: {user.id}"
+            f"TG: @{username} | ID: <code>{user.id}</code>"
         )
         try:
-            await context.bot.send_message(ADMIN_ID, admin_msg, parse_mode='Markdown')
+            await context.bot.send_message(ADMIN_ID, admin_msg, parse_mode='HTML')
         except Exception as e:
             logging.error(f"Admin notify error: {e}")
 
